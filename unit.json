@@ -1,0 +1,7 @@
+{
+ "id":"bio-blood-sugar", "title":"血糖調節", "version":"2.0.0", "entry":"./index.html",
+ "offline":true, "standalone_install":true,
+ "core":["口腔→小腸","小腸→血管","血管→肝臟","肝臟→血管","血管→肌肉組織"],
+ "optional":["血管→脂肪組織","血管→細胞粒線體"],
+ "resources":["./index.html","./styles.css","./app.js","./manifest.webmanifest","./unit.json","./icons/icon-192.png","./icons/icon-512.png","./icons/icon-maskable-512.png","./icons/apple-touch-icon.png","./icons/favicon-96.png"]
+}

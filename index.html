@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#176b79"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="血糖複習">
+<meta name="description" content="國中生物：血糖調節、肝糖儲存與胰島素／升糖素的互動概念圖，可個別安裝與離線使用。">
+<link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png"><link rel="stylesheet" href="./styles.css">
+<title>血糖調節｜概念圖練習 2.0</title><script src="./app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+ <div class="branding"><img src="./icons/icon-192.png" alt="" class="brand-icon" width="42" height="42"><div><h1>血糖調節：概念圖練習</h1><span class="subline">生物互動教學系統 <strong>2.0 測試版</strong></span></div></div>
+ <div class="toolbar">
+  <button id="check-btn" class="btn primary" type="button">檢查架構</button>
+  <button id="snap-btn" class="btn" type="button" aria-pressed="false">貼齊格線：關</button>
+  <button id="hint-btn" class="btn" type="button" aria-pressed="false">即時提示：關</button>
+  <button id="reset-btn" class="btn" type="button">重設</button>
+  <button id="install-btn" class="btn subtle" type="button">安裝說明</button>
+ </div>
+</header>
+<div class="notice" role="status" aria-live="polite"><span id="status-text">先放置器官，依序點兩張器官連成箭頭，再放入物質與激素。</span><span id="network-status" class="network-status">偵測中</span></div>
+<main class="workspace">
+ <aside class="sidebar" id="sidebar" aria-label="字卡來源">
+  <section class="palette organ-section"><h2>器官卡 <small>拖回此區可收回</small></h2><div id="organ-pool" class="organ-pool"></div></section>
+  <div class="palette-right">
+   <section class="palette matter-section"><h2>物質卡 <small>拖入器官右下方</small></h2><div id="matter-pool" class="matter-pool"></div></section>
+   <section class="palette hormone-section"><h2>激素卡 <small>拖到有向連線</small></h2><div id="hormone-pool" class="hormone-pool"></div></section>
+  </div>
+ </aside>
+ <section class="canvas-area" aria-label="概念圖工作區">
+  <div id="canvas" tabindex="0" aria-label="概念圖畫布，可自由排列器官字卡">
+   <svg id="svg-layer" aria-hidden="true"></svg>
+   <div id="hormone-slots" aria-label="連線中的激素標籤"></div>
+   <p id="canvas-empty" class="canvas-empty">將器官拖到畫布，再點兩張器官建立箭頭</p>
+   <div class="canvas-counter" id="canvas-counter">核心路徑 0／5 · 延伸 0／2</div>
+  </div>
+ </section>
+</main>
+<div id="dialog" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="modal"><h2 id="dialog-title"></h2><div id="dialog-content"></div><button class="btn primary" type="button" id="dialog-close">知道了</button></div></div>
+</body></html>

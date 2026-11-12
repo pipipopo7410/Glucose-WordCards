@@ -1,0 +1,12 @@
+{
+ "name":"血糖調節｜生物概念圖",
+ "short_name":"血糖複習",
+ "description":"國中生物血糖調節互動教學：器官、葡萄糖、肝糖、胰島素與升糖素。",
+ "id":"./", "start_url":"./index.html", "scope":"./", "display":"standalone", "orientation":"any",
+ "lang":"zh-TW", "background_color":"#f8fbff", "theme_color":"#176b79",
+ "icons":[
+  {"src":"./icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+  {"src":"./icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+  {"src":"./icons/icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+ ]
+}
