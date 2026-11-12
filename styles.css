@@ -31,3 +31,38 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}butto
 @keyframes material-grow{0%,100%{filter:brightness(1);box-shadow:0 0 0 #2ac88900}50%{filter:brightness(1.12);box-shadow:0 0 0 6px #2ac88934}}
 @keyframes material-shrink{0%,100%{opacity:1}50%{opacity:.55}}
 @keyframes material-both{0%,100%{box-shadow:0 0 0 0 #dc77cb00}50%{box-shadow:0 0 0 5px #d678cb32}}
+
+/* 血糖 3.0：辨識度更高的激素及動態演示 */
+.hormone-template{border-radius:999px!important;background:var(--bg);border-color:var(--bd);color:#fff;font-weight:900;min-height:36px;font-size:12px}
+.hormone-slot{width:66px;height:28px;border-radius:999px;font-size:11px}
+.hormone-slot.filled{border:1.5px solid #fff8;box-shadow:0 0 0 2px #ffffffa6,0 0 10px var(--h-bg);color:#fff}
+.hormone-slot.filled.insulin{--h-bg:#7541c5}.hormone-slot.filled.glucagon{--h-bg:#ef3c55}
+.hormone-slot.demo-signal{animation:demo-tag-pulse 1.15s ease-in-out infinite}
+@keyframes demo-tag-pulse{0%,100%{box-shadow:0 0 0 2px #fff5,0 0 10px var(--h-bg)}50%{box-shadow:0 0 0 5px #fff6,0 0 21px var(--h-bg);filter:brightness(1.22)}}
+.drag-preview.hormone{border-radius:999px;min-width:66px}
+.hormone-glow{filter:drop-shadow(0 0 3px currentColor)}
+.organ-slot.filled{white-space:pre-line;text-align:center;line-height:1.06;min-height:30px;height:auto;padding:3px 2px;font-size:11px;overflow:visible}
+.organ-card[data-organ-id="organ-2"] .organ-slot{font-size:10px}
+#demo-layer{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;overflow:visible;filter:drop-shadow(0 0 4px #47cfb3aa)}
+.demo-panel{z-index:6;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid #e4eaf4;background:linear-gradient(100deg,#f6f0ff,#f9fcff);padding:7px 13px}
+.demo-controls{display:flex;align-items:center;flex-wrap:wrap;gap:6px}.demo-label{font-size:11px;color:#685a82;font-weight:800}.demo-panel .btn{min-height:33px;font-size:12px;padding:5px 11px}
+.demo-panel .btn:disabled{cursor:not-allowed;opacity:.45}
+.demo-meal{background:#fff0df;color:#8f521c;border-color:#f0c49a}.demo-exercise{background:#fce7ef;color:#a12952;border-color:#f1b2cb}
+.demo-panel .btn.active{box-shadow:0 0 0 2px #ac86e0;background:#f4eafb;color:#57368d}
+.demo-status{min-width:200px;flex:1;display:flex;align-items:center;gap:9px;color:#5c5c77;font-size:12px;line-height:1.45}
+.demo-track{width:100px;flex:0 0 100px;height:7px;border-radius:50px;overflow:hidden;background:#dedce8}
+#demo-progress{width:0;height:100%;background:#8e57d4;transition:width .08s linear}
+#canvas.demo-active{box-shadow:inset 0 0 0 4px #a99dcc66}
+#canvas.demo-high{box-shadow:inset 0 0 0 6px #f3b64b85}
+#canvas.demo-low{animation:demo-blood-low 1.9s ease-in-out infinite}
+@keyframes demo-blood-low{0%,100%{box-shadow:inset 0 0 0 4px #f05b7570}50%{box-shadow:inset 0 0 0 8px #f05b75c0}}
+.organ-slot.demo-target{transition:filter .1s;filter:drop-shadow(0 0 4px #6ddcb5)}
+@media(max-width:950px){.demo-panel{padding:5px 9px}.demo-status{flex-basis:100%}.demo-label{display:none}}
+@media(max-width:650px){.demo-panel{gap:5px}.demo-panel .btn{padding:5px 8px}.demo-status{font-size:11px;flex-wrap:wrap}.demo-track{width:100%;flex:1 0 100%;height:5px}}
+@media(prefers-reduced-motion:reduce){#canvas.demo-low{animation:none;box-shadow:inset 0 0 0 5px #f05b7590}.hormone-slot.demo-signal{animation:none}}
+
+/* 演示期間暫停背景中兩種激素同時閃爍，僅保留當前演示路徑的流光。 */
+#canvas.demo-active .hormone-glow{animation-play-state:paused;opacity:.12;filter:none}
+#canvas.demo-active .organ-slot.matter-increase,#canvas.demo-active .organ-slot.matter-decrease{animation:none}
+#canvas.demo-active .hormone-slot.filled:not(.demo-signal){opacity:.62}
+.organ-slot.filled{overflow-wrap:normal;word-break:keep-all}

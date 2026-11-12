@@ -7,11 +7,11 @@
 <meta name="description" content="國中生物：血糖調節、肝糖儲存與胰島素／升糖素的互動概念圖，可個別安裝與離線使用。">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png"><link rel="stylesheet" href="./styles.css">
-<title>血糖調節｜概念圖練習 2.0</title><script src="./app.js" defer></script>
+<title>血糖調節｜概念圖練習 3.0</title><script src="./app.js" defer></script>
 </head>
 <body>
 <header class="topbar">
- <div class="branding"><img src="./icons/icon-192.png" alt="" class="brand-icon" width="42" height="42"><div><h1>血糖調節：概念圖練習</h1><span class="subline">生物互動教學系統 <strong>2.0 測試版</strong></span></div></div>
+ <div class="branding"><img src="./icons/icon-192.png" alt="" class="brand-icon" width="42" height="42"><div><h1>血糖調節：概念圖練習</h1><span class="subline">生物互動教學系統 <strong>3.0 測試版</strong></span></div></div>
  <div class="toolbar">
   <button id="check-btn" class="btn primary" type="button">檢查架構</button>
   <button id="snap-btn" class="btn" type="button" aria-pressed="false">貼齊格線：關</button>
@@ -20,7 +20,17 @@
   <button id="install-btn" class="btn subtle" type="button">安裝說明</button>
  </div>
 </header>
-<div class="notice" role="status" aria-live="polite"><span id="status-text">先放置器官，依序點兩張器官連成箭頭，再放入物質與激素。</span><span id="network-status" class="network-status">偵測中</span></div>
+<div class="notice" role="status" aria-live="polite"><span id="status-text">先放置器官，依序點兩張器官連成箭頭，再放入物質；消化吸收路徑不需激素。</span><span id="network-status" class="network-status">偵測中</span></div>
+<section id="demo-panel" class="demo-panel" aria-label="飯後與運動的動態演示" hidden>
+ <div class="demo-controls">
+  <span class="demo-label">完成概念圖後解鎖</span>
+  <button id="demo-play-meal" class="btn demo-meal" type="button">🍚 吃飯</button>
+  <button id="demo-play-exercise" class="btn demo-exercise" type="button">🏃 運動</button>
+  <button id="demo-pause" class="btn" type="button" disabled>暫停</button>
+  <button id="demo-end" class="btn" type="button" disabled>結束演示</button>
+ </div>
+ <div class="demo-status"><span id="demo-caption" role="status">播放會沿著你自己排好的概念圖進行，不會改動答案。</span><div class="demo-track"><div id="demo-progress"></div></div></div>
+</section>
 <main class="workspace">
  <aside class="sidebar" id="sidebar" aria-label="字卡來源">
   <section class="palette organ-section"><h2>器官卡 <small>拖回此區可收回</small></h2><div id="organ-pool" class="organ-pool"></div></section>
@@ -31,7 +41,7 @@
  </aside>
  <section class="canvas-area" aria-label="概念圖工作區">
   <div id="canvas" tabindex="0" aria-label="概念圖畫布，可自由排列器官字卡">
-   <svg id="svg-layer" aria-hidden="true"></svg>
+   <svg id="svg-layer" aria-hidden="true"></svg><svg id="demo-layer" aria-hidden="true"></svg>
    <div id="hormone-slots" aria-label="連線中的激素標籤"></div>
    <p id="canvas-empty" class="canvas-empty">將器官拖到畫布，再點兩張器官建立箭頭</p>
    <div class="canvas-counter" id="canvas-counter">核心路徑 0／5 · 延伸 0／2</div>
