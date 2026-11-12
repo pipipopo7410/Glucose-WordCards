@@ -1,5 +1,5 @@
 'use strict';
-/* 血糖調節 3.1：個人化概念圖演示、雙激素槽與具注意提示的情境動畫。 */
+/* 血糖調節 3.1.1：情境暫時加入腎上腺素、漸層光暈與安全區避讓。 */
 const ORGANS = [
  {name:'口腔',bg:'#fff0f3',bd:'#e9afbf',fg:'#87344b'},
  {name:'小腸',bg:'#fff0df',bd:'#e8bf85',fg:'#845216'},
@@ -13,12 +13,12 @@ const MATTERS=[
  {name:'澱粉',fg:'#fcd34d'},{name:'葡萄糖',fg:'#fdba74'},{name:'肝糖',fg:'#fca5a5'},
  {name:'脂肪',fg:'#fef08a'},{name:'氧氣',fg:'#67e8f9'}
 ];
-const HORMONES=[{name:'胰島素',bg:'#7541c5',bd:'#5425a0'},{name:'升糖素',bg:'#ef3c55',bd:'#bc1736'},{name:'腎上腺素',bg:'#ec812c',bd:'#b44e0b'}];
+const HORMONES=[{name:'胰島素',bg:'#79334f',bd:'#52213d',fg:'#ffffff'},{name:'升糖素',bg:'#f8b6c4',bd:'#df8198',fg:'#70263e'}]; // 腎上腺素僅在運動動畫裡暫時出現
 const RULES=[
  {from:'口腔',to:'小腸',h:'',source:'澱粉',target:['澱粉','葡萄糖'],required:true},
  {from:'小腸',to:'血管',h:'',source:['澱粉','葡萄糖'],target:'葡萄糖',required:true},
  {from:'血管',to:'肝臟',h:'胰島素',source:'葡萄糖',target:'肝糖',required:true},
- {from:'肝臟',to:'血管',h:'升糖素',bonus:'腎上腺素',source:'肝糖',target:'葡萄糖',required:true},
+ {from:'肝臟',to:'血管',h:'升糖素',source:'肝糖',target:'葡萄糖',required:true},
  {from:'血管',to:'肌肉組織',h:'胰島素',source:'葡萄糖',target:'肝糖',required:true},
  {from:'血管',to:'脂肪組織',h:'胰島素',source:'葡萄糖',target:'脂肪',required:false},
  {from:'血管',to:'細胞粒線體',h:'胰島素',source:'葡萄糖',target:'葡萄糖',required:false}
@@ -110,7 +110,7 @@ function onOrganClick(o){if(!o.placed){selectTool('organ',o.name,o.poolEl);retur
 function onMatterSlot(o){if(tool?.kind==='matter'){if(!(tool.name==='氧氣'&&spawnRespiration(o)))setMatter(o,tool.name);clearSelection();return;}if(o.matter){say(`「${o.name}」目前放的是「${o.matter}」。可直接拖出、移走，或先選其他物質替換。`);}else say('先點選物質卡，再點這個框；或直接拖曳物質過來。');}
 function onHormoneSlot(link,role='primary'){
  if(!needsHormone(link)){say('消化／吸收路徑不需放激素。');clearSelection();return;}
- const current=role==='bonus'?link.adrenaline:link.hormone;
+ const current=link.hormone;
  if(tool?.kind==='hormone'){setHormone(link,tool.name,false,role);clearSelection();return;}
  if(current)say(`這個位置放的是「${current}」，可以拖出或更換。`);
  else say(role==='bonus'?'這是進階選放位置：可以使用腎上腺素。':'先選擇激素卡，再點連線的虛線框。');
@@ -119,10 +119,10 @@ function setHormone(link,name,quiet=false,role='primary'){
  if(!demoInternalUpdate)invalidateDemonstration();
  if(name&&!needsHormone(link)){say('消化／吸收路徑不需要激素。');return false;}
  const rule=ruleForLink(link);
- if(role==='bonus'&&!rule?.bonus){say('這條路徑沒有第二個激素位置。');return false;}
+ if(role==='bonus'){say('腎上腺素只在運動情境演示中出現。');return false;}
  const valid=role==='bonus'?name===rule?.bonus:name===rule?.h;
  if(name&&hints&&!valid){say('這個激素與位置不符，已退回。');flash(hormoneLayer.querySelector(`[data-link="${link.id}"][data-role="${role}"]`));return false;}
- if(role==='bonus')link.adrenaline=name;else link.hormone=name;
+ link.hormone=name;
  link.status='neutral';draw();updateCounter();
  if(!quiet)say(name?`已將「${name}」放在 ${nameOf(link.from)} → ${nameOf(link.to)}。`:'已拔出激素卡。');return true;
 }
@@ -130,6 +130,7 @@ function flash(el){if(!el)return;el.animate([{transform:'translate(-50%,-50%) sc
 function hormoneTagPosition(midX,midY,ux,uy,slide,used){
  // 避讓器官、物質槽及其它激素槽，否則兩個位置雖然有畫出卻可能點不到。
  const rects=[...used];const canvasRect=canvas.getBoundingClientRect();
+ const panelArea=getDemoSafeRect();if(demoUnlocked&&panelArea)rects.push(panelArea);
  for(const o of organs.values())if(o.placed){
    rects.push({x:o.x-3,y:o.y-3,w:OW+6,h:OH+6});
    if(o.slot){const r=o.slot.getBoundingClientRect();rects.push({x:r.left-canvasRect.left-5,y:r.top-canvasRect.top-5,w:r.width+10,h:r.height+10});}
@@ -165,15 +166,14 @@ function draw(){
   const line=document.createElementNS(ns,'line');for(const [key,v] of Object.entries({x1:startX,y1:startY,x2:endX,y2:endY,'stroke-width':'3.1','stroke-linecap':'round',stroke:l.status==='green'?'#10a77b':l.status==='red'?'#ee6262':'#94a3b8','marker-end':'url(#arrow-'+(l.status==='green'?'green':l.status==='red'?'red':'gray')+')'}))line.setAttribute(key,v);
   svg.append(line);l.slotX=(startX+endX)/2;l.slotY=(startY+endY)/2;
   if(needsHormone(l)){
-   const rule=ruleForLink(l),double=!!rule?.bonus;
-   const roles=double?['primary','bonus']:['primary'];
+   const roles=['primary'];
    for(const role of roles){
     const bonus=role==='bonus',name=bonus?l.adrenaline:l.hormone;
     const tag=document.createElement('button');tag.type='button';tag.className='hormone-slot';
     tag.dataset.link=l.id;tag.dataset.role=role;
     tag.textContent=name||(bonus?'選放激素':'放激素');
     // 雙激素槽沿著該條箭頭排列；不限定學生把器官放成哪種版型。
-    const slide=double?(bonus?44:-44):0;
+    const slide=0;
     const position=hormoneTagPosition(l.slotX,l.slotY,ux,uy,slide,hormoneBoxes);
     hormoneBoxes.push(position.rect);
     tag.style.left=position.x+'px';tag.style.top=position.y+'px';
@@ -197,13 +197,9 @@ function draw(){
     if(a.matter)a.slot.classList.add('matter-decrease');
     if(b.matter)b.slot.classList.add('matter-increase');
    }
-   const hormoneColor=l.hormone==='胰島素'?'#a66afc':'#ff3456';
+   const hormoneColor=l.hormone==='胰島素'?'#9c5678':'#ee8aa2';
    const under=document.createElementNS(ns,'line');for(const [k,v] of Object.entries({x1:startX,y1:startY,x2:endX,y2:endY,stroke:hormoneColor,'stroke-width':'12','stroke-linecap':'round',opacity:'.19'}))under.setAttribute(k,v);svg.append(under);
    const anim=document.createElementNS(ns,'line');for(const [k,v] of Object.entries({x1:startX,y1:startY,x2:endX,y2:endY,stroke:hormoneColor,'stroke-width':'5','stroke-linecap':'round','stroke-dasharray':'16 13',opacity:'.98'}))anim.setAttribute(k,v);anim.style.animation='dash .62s linear infinite';anim.classList.add('hormone-glow');svg.append(anim);
-   if(l.adrenaline==='腎上腺素'){
-    const add=document.createElementNS(ns,'line');for(const [k,v] of Object.entries({x1:startX-uy*5,y1:startY+ux*5,x2:endX-uy*5,y2:endY+ux*5,stroke:'#fb942e','stroke-width':'3.2','stroke-linecap':'round','stroke-dasharray':'6 11',opacity:'.95'}))add.setAttribute(k,v);
-    add.style.animation='dash .8s linear infinite';add.classList.add('hormone-glow');svg.append(add);
-   }
   }
  }
 }
@@ -212,7 +208,7 @@ function status(){const req=RULES.filter(r=>r.required);const optional=RULES.fil
  $('canvas-empty').hidden=[...organs.values()].some(o=>o.placed);
 }
 const updateCounter=status;
-function matchLink(link){const rule=ruleForLink(link);if(!rule||rule.h!==link.hormone||(link.adrenaline&&link.adrenaline!==rule.bonus))return false;
+function matchLink(link){const rule=ruleForLink(link);if(!rule||rule.h!==link.hormone||link.adrenaline)return false;
  const f=organOfId(link.from),t=organOfId(link.to);return matchMatter(f.matter,rule.source)&&(matchMatter(t.matter,rule.target)||(t.name==='細胞粒線體'&&t.respirationDone));
 }
 function checkAnswers(){let correct=new Set(),wrong=[];links.forEach(l=>{const r=ruleForLink(l);if(matchLink(l)){l.status='green';correct.add(r);}else{l.status='red';wrong.push(`${nameOf(l.from)} → ${nameOf(l.to)}`);}});
@@ -233,7 +229,7 @@ function checkAnswers(){let correct=new Set(),wrong=[];links.forEach(l=>{const r
 function showDialog(title,html){dialogFocus=document.activeElement;$('dialog-title').textContent=title;$('dialog-content').innerHTML=html;$('dialog').hidden=false;$('dialog-close').focus();}
 function hideDialog(){$('dialog').hidden=true;dialogFocus?.focus?.();}
 function init(){
- stopDemonstration(true);demoUnlocked=false;demoPanel.hidden=true;
+ stopDemonstration(true);demoUnlocked=false;demoPanel.hidden=true;cancelAnimationFrame(reflowFrame);reflowFrame=0;
  epoch++;cancelDrag(false);clearSelection();links=[];organs=new Map();idCounter=0;linkCounter=0;snap=false;hints=false;
  snapBtn.textContent='貼齊格線：關';hintBtn.textContent='即時提示：關';snapBtn.setAttribute('aria-pressed','false');hintBtn.setAttribute('aria-pressed','false');
  organPool.replaceChildren();matterPool.replaceChildren();hormonePool.replaceChildren();
@@ -336,30 +332,83 @@ async function verifyOffline(reg){if(!reg?.active)return;try{const ch=new Messag
 // 注意：低血糖警示為「長時間消耗導致血糖過低」的假設情境，非每次運動必然如此。
 const demoPanel=$('demo-panel'),demoLayer=$('demo-layer'),demoCaption=$('demo-caption');
 const demoProgress=$('demo-progress'),demoPause=$('demo-pause'),demoEnd=$('demo-end'),demoAlert=$('demo-alert');
+const demoGlow=$('demo-alert-glow'),demoAdrenaline=$('demo-adrenaline');
+let demoSequence=[],reflowFrame=0;
 let demoUnlocked=false,demoPlaying=false,demoPaused=false,demoInternalUpdate=false;
 let demoMode=null,demoElapsed=0,demoLastFrame=null,demoRaf=0,demoStepIndex=-1;
 const DEMO_STEPS={
  meal:[
-  {ms:1500,title:'飯後｜口腔澱粉增加',focus:['口腔'],levels:{'口腔':1.75}},
-  {ms:2900,title:'澱粉進入小腸',focus:['口腔','小腸'],levels:{'口腔':0,'小腸':1.85},paths:[['口腔','小腸']]},
-  {ms:2800,title:'葡萄糖從小腸吸收至血液',focus:['小腸','血管'],levels:{'小腸':.72,'血管':1.95},paths:[['小腸','血管']]},
-  {ms:1200,title:'血糖升高',focus:['血管'],levels:{'血管':1.95},alert:'high'},
-  {ms:3300,title:'胰島素調節',focus:['血管','肝臟','肌肉組織'],levels:{'血管':1.12,'肝臟':1.72,'肌肉組織':1.7},paths:[['血管','肝臟'],['血管','肌肉組織']],optional:true,hormones:['胰島素']},
-  {ms:1600,title:'血糖回到穩定',focus:['血管'],levels:{'血管':1,'肝臟':1,'肌肉組織':1}}
+  {ms:1500,title:'飯後｜口腔澱粉增加',focus:['口腔'],levels:{'口腔':1.85}},
+  {ms:2900,title:'澱粉進入小腸',focus:['口腔','小腸'],levels:{'口腔':0,'小腸':2.05},paths:[['口腔','小腸']]},
+  {ms:2800,title:'葡萄糖從小腸吸收至血液',focus:['小腸','血管'],levels:{'小腸':.68,'血管':2.08},paths:[['小腸','血管']]},
+  {ms:1200,title:'血糖升高',focus:['血管'],levels:{'血管':2.08},alert:'high'},
+  {ms:3200,title:'胰島素調節｜肝臟與肌肉先呈現糖原儲存',focus:['血管','肝臟','肌肉組織'],levels:{'血管':1.48,'肝臟':2.05,'肌肉組織':2.05},paths:[['血管','肝臟'],['血管','肌肉組織']],hormones:['胰島素']},
+  {ms:2200,title:'糖原儲存增加後，示意部分多餘糖分也可轉成脂肪',focus:['血管','脂肪組織'],levels:{'血管':1.10,'脂肪組織':1.95},paths:[['血管','脂肪組織']],hormones:['胰島素'],optionalFat:true},
+  {ms:1600,title:'血糖回到穩定',focus:['血管'],levels:{'血管':1,'肝臟':1,'肌肉組織':1,'脂肪組織':1}}
  ],
  exercise:[
-  {ms:1900,title:'運動開始｜注意肌肉和血糖',focus:['肌肉組織','血管'],levels:{'肌肉組織':1.48,'血管':1.45}},
-  {ms:2900,title:'持續消耗｜肌糖原和血糖減少',focus:['肌肉組織','血管'],levels:{'肌肉組織':.36,'血管':.12}},
-  {ms:1700,title:'示意低血糖｜調節啟動',focus:['血管','肝臟'],levels:{'血管':.08,'肝臟':1.95},alert:'low'},
-  {ms:3500,title:'升糖素及腎上腺素協助血糖回升',focus:['肝臟','血管'],levels:{'肝臟':.34,'血管':1.58},paths:[['肝臟','血管']],hormones:['升糖素','腎上腺素'],alert:'low-to-recover'},
+  {ms:1900,title:'運動開始｜先看血糖、肌糖原與肝糖',focus:['肌肉組織','血管','肝臟'],levels:{'肌肉組織':1.8,'血管':1.85,'肝臟':1.9}},
+  {ms:2900,title:'持續消耗｜肌糖原和血糖減少',focus:['肌肉組織','血管'],levels:{'肌肉組織':.22,'血管':.08,'肝臟':1.9}},
+  {ms:1700,title:'示意低血糖｜調節啟動',focus:['血管','肝臟'],levels:{'血管':.065,'肝臟':1.9},alert:'low'},
+  {ms:3500,title:'升糖素與情境性腎上腺素協助血糖回升',focus:['肝臟','血管'],levels:{'肝臟':.31,'血管':1.6},paths:[['肝臟','血管']],hormones:['升糖素','腎上腺素'],alert:'low-to-recover'},
   {ms:1950,title:'血糖回穩｜警報解除',focus:['血管'],levels:{'血管':1,'肝臟':1},alert:'recover'}
  ]
 };
+// 演示的順序只為了突出因果概念；脂肪合成不必等待糖原庫完全裝滿。
+const EXERCISE_INITIAL={'血管':1.85,'肝臟':1.9,'肌肉組織':1.8};
+
 function invalidDemoStructure(){const valid=new Set(links.filter(matchLink).map(ruleForLink));return RULES.some(r=>r.required&&!valid.has(r))||links.some(l=>!matchLink(l));}
-function unlockDemonstration(){demoUnlocked=true;demoPanel.hidden=false;$('demo-play-meal').disabled=false;$('demo-play-exercise').disabled=false;say('已解鎖吃飯／運動演示。');}
-function invalidateDemonstration(){if(!demoUnlocked&&!demoPlaying&&!demoMode)return;stopDemonstration(true);demoUnlocked=false;demoPanel.hidden=true;}
+function intersectsRect(a,b,pad=0){return a.x<b.x+b.w+pad&&a.x+a.w+pad>b.x&&a.y<b.y+b.h+pad&&a.y+a.h+pad>b.y;}
+function getDemoSafeRect(){
+ if(demoPanel.hidden)return null;
+ const box=demoPanel.getBoundingClientRect(),base=canvas.getBoundingClientRect();
+ return{x:box.left-base.left-12,y:box.top-base.top-12,w:box.width+24,h:box.height+24};
+}
+function safePlacement(o,others,protectedRect){
+ const start={x:o.x,y:o.y},step=15;
+ for(let radius=0;radius<Math.max(canvas.clientWidth,canvas.clientHeight)+60;radius+=step){
+  const candidates=[];
+  for(let dx=-radius;dx<=radius;dx+=step){
+   for(const dy of [-radius,radius])candidates.push({x:start.x+dx,y:start.y+dy});
+  }
+  for(let dy=-radius+step;dy<radius;dy+=step){
+   for(const dx of [-radius,radius])candidates.push({x:start.x+dx,y:start.y+dy});
+  }
+  candidates.sort((a,b)=>((a.x-start.x)**2+(a.y-start.y)**2)-((b.x-start.x)**2+(b.y-start.y)**2));
+  for(const p of candidates){
+   const area={x:p.x-4,y:p.y-4,w:OW+15,h:OH+20};
+   if(p.x<2||p.y<2||p.x+OW+10>canvas.clientWidth-2||p.y+OH+10>canvas.clientHeight-2)continue;
+   if(intersectsRect(area,protectedRect,3)||others.some(r=>intersectsRect(area,r,6)))continue;
+   return p;
+  }
+ }
+ return null;
+}
+function protectDemoControls(){
+ const safe=getDemoSafeRect();if(!safe)return;
+ const placed=[...organs.values()].filter(o=>o.placed),changed=[];
+ const obstacles=placed.map(o=>({id:o.id,x:o.x-4,y:o.y-4,w:OW+15,h:OH+20}));
+ for(const o of placed){
+  const area={x:o.x-4,y:o.y-4,w:OW+15,h:OH+20};
+  if(!intersectsRect(area,safe,3))continue;
+  const p=safePlacement(o,obstacles.filter(a=>a.id!==o.id),safe);
+  if(!p)continue;
+  changed.push({o,fromX:o.x,fromY:o.y,toX:p.x,toY:p.y});
+  const entry=obstacles.find(a=>a.id===o.id);entry.x=p.x-4;entry.y=p.y-4;
+ }
+ if(!changed.length){draw();return;}
+ cancelAnimationFrame(reflowFrame);const started=performance.now(),duration=320;
+ function frame(now){const f=easing((now-started)/duration);
+  for(const c of changed){c.o.x=c.fromX+(c.toX-c.fromX)*f;c.o.y=c.fromY+(c.toY-c.fromY)*f;pos(c.o);}
+  draw();if(f<1)reflowFrame=requestAnimationFrame(frame);else reflowFrame=0;
+ }
+ reflowFrame=requestAnimationFrame(frame);
+}
+function unlockDemonstration(){demoUnlocked=true;demoPanel.hidden=false;$('demo-play-meal').disabled=false;$('demo-play-exercise').disabled=false;protectDemoControls();say('已解鎖吃飯／運動演示。');}
+function invalidateDemonstration(){if(!demoUnlocked&&!demoPlaying&&!demoMode)return;cancelAnimationFrame(reflowFrame);reflowFrame=0;stopDemonstration(true);demoUnlocked=false;demoPanel.hidden=true;}
 function resetDemoVisuals(){
  demoLayer.replaceChildren();canvas.classList.remove('demo-high','demo-low','demo-recover','demo-active','demo-paused');
+ demoGlow.style.opacity='0';demoGlow.style.boxShadow='none';demoAdrenaline.hidden=true;demoAdrenaline.style.opacity='0';
  demoAlert.hidden=true;
  for(const o of organs.values())if(o.placed&&o.slot){o.slot.style.transform='';o.slot.style.opacity='';o.slot.classList.remove('demo-target','demo-focus');}
  for(const el of hormoneLayer.querySelectorAll('.demo-signal'))el.classList.remove('demo-signal');
@@ -371,10 +420,10 @@ function stopDemonstration(clearSelection=true){
 }
 function startDemonstration(mode){
  if(!demoUnlocked||invalidDemoStructure()){invalidateDemonstration();say('先完成並檢查五條核心關係，再開啟演示。');return;}
- stopDemonstration();demoMode=mode;demoPlaying=true;demoPaused=false;demoElapsed=0;demoLastFrame=null;demoStepIndex=-1;canvas.classList.remove('demo-paused');
+ stopDemonstration();demoMode=mode;demoSequence=mode==='meal'?DEMO_STEPS.meal.filter(x=>!x.optionalFat||!!demoLink('血管','脂肪組織')):DEMO_STEPS.exercise;demoPlaying=true;demoPaused=false;demoElapsed=0;demoLastFrame=null;demoStepIndex=0;canvas.classList.remove('demo-paused');
  canvas.classList.add('demo-active');demoPause.disabled=false;demoEnd.disabled=false;
  $('demo-play-meal').classList.toggle('active',mode==='meal');$('demo-play-exercise').classList.toggle('active',mode==='exercise');
- demoCaption.textContent=mode==='meal'?'飯後演示開始':'運動演示開始';demoRaf=requestAnimationFrame(demoTick);
+ demoCaption.textContent=mode==='meal'?'飯後演示開始':'運動演示開始';renderDemoStep(demoSequence[0],0);demoRaf=requestAnimationFrame(demoTick);
 }
 function toggleDemoPause(){
  if(!demoMode)return;
@@ -382,7 +431,7 @@ function toggleDemoPause(){
  if(demoPlaying){demoPlaying=false;demoPaused=true;cancelAnimationFrame(demoRaf);demoRaf=0;canvas.classList.add('demo-paused');demoPause.textContent='繼續';}
 }
 function currentStep(mode,elapsed){
- const steps=DEMO_STEPS[mode],total=steps.reduce((s,a)=>s+a.ms,0);
+ const steps=demoSequence,total=steps.reduce((s,a)=>s+a.ms,0);
  let acc=0;for(let i=0;i<steps.length;i++){const next=acc+steps[i].ms;if(elapsed<next)return{i,step:steps[i],progress:(elapsed-acc)/steps[i].ms,total};acc=next;}
  return null;
 }
@@ -394,13 +443,40 @@ function demoLinkGeometry(link){
  const ux=dx/d,uy=dy/d,reverse=links.some(q=>q.from===link.to&&q.to===link.from),shift=reverse?13:0,nx=-uy*shift,ny=ux*shift,trim=Math.min(46,d*.35);
  return{x1:x1+ux*trim+nx,y1:y1+uy*trim+ny,x2:x2-ux*trim+nx,y2:y2-uy*trim+ny};
 }
-function stageLevel(mode,index,name){let last=1;const steps=DEMO_STEPS[mode];for(let i=0;i<index;i++)if(steps[i].levels&&Object.hasOwn(steps[i].levels,name))last=steps[i].levels[name];return last;}
+function stageLevel(mode,index,name){let last=mode==='exercise'?(EXERCISE_INITIAL[name]??1):1;const steps=demoSequence;for(let i=0;i<index;i++)if(steps[i].levels&&Object.hasOwn(steps[i].levels,name))last=steps[i].levels[name];return last;}
 function demoAlertState(step,t,bloodScale){
  if(step.alert==='high')return'high';
  if(step.alert==='low')return'low';
  if(step.alert==='low-to-recover')return bloodScale>=1.0?'recover':'low';
  if(step.alert==='recover')return'recover';
  return'';
+}
+function paintAlertGlow(step,t,bloodScale){
+ if(demoMode!=='exercise'){demoGlow.style.opacity='0';return;}
+ let opacity=0,mix=0;
+ if(step.alert==='low'){opacity=easing(Math.min(1,t*4));}
+ if(step.alert==='low-to-recover'){
+  opacity=.95;mix=easing(Math.min(1,Math.max(0,(bloodScale-.5)/.72)));
+ }
+ if(step.alert==='recover'){opacity=.95*(1-easing(t));mix=1;}
+ const red=[232,49,83],blue=[119,205,242];
+ const c=red.map((v,i)=>Math.round(v*(1-mix)+blue[i]*mix));
+ demoGlow.style.opacity=String(opacity);
+ demoGlow.style.boxShadow=`inset 0 0 14px 4px rgba(${c.join(',')},.93), inset 0 0 39px 18px rgba(${c.join(',')},.47), inset 0 0 65px 24px rgba(${c.join(',')},.16)`;
+ demoGlow.classList.toggle('warning',opacity>.05&&mix<.95);
+}
+function showAdrenaline(step,t){
+ const during=demoMode==='exercise'&&(step.alert==='low-to-recover'||step.alert==='recover');
+ const link=demoLink('肝臟','血管');if(!during||!link){demoAdrenaline.hidden=true;return;}
+ const g=demoLinkGeometry(link);if(!g){demoAdrenaline.hidden=true;return;}
+ demoAdrenaline.hidden=false;
+ const ratio=step.alert==='recover'?1:easing(Math.min(1,Math.max(0,(t-.04)/.29)));
+ let x=(g.x1+g.x2)/2,y=(g.y1+g.y2)/2-36;
+ x=clamp(x,57,canvas.clientWidth-57);y=clamp(y,32,canvas.clientHeight-30);
+ demoAdrenaline.style.left=x+'px';demoAdrenaline.style.top=y+'px';
+ demoAdrenaline.style.opacity=String(ratio);
+ const hop=step.alert==='recover'?0:-(1-ratio)*63-Math.abs(Math.sin(ratio*3*Math.PI))*14*(1-ratio);
+ demoAdrenaline.style.transform=`translate(-50%,-50%) translateY(${hop}px) scale(${.55+.45*ratio})`;
 }
 function renderDemoStep(step,t){
  const focusing=t<.30,attention=easing(Math.min(t/.30,1)),transition=easing(Math.max(0,(t-.30)/.70));
@@ -418,6 +494,7 @@ function renderDemoStep(step,t){
  const alert=demoAlertState(step,t,sizes['血管']??1);
  canvas.classList.toggle('demo-high',alert==='high');canvas.classList.toggle('demo-low',alert==='low');
  canvas.classList.toggle('demo-recover',alert==='recover');
+ paintAlertGlow(step,t,sizes['血管']??1);showAdrenaline(step,t);
  if(alert==='low'){demoAlert.hidden=false;demoAlert.textContent='低血糖！';}
  else if(alert==='recover'){demoAlert.hidden=false;demoAlert.textContent='警報解除';demoAlert.classList.add('recovered');}
  else demoAlert.hidden=true;
@@ -425,27 +502,16 @@ function renderDemoStep(step,t){
  demoAlert.style.opacity=alert==='recover'&&step.alert==='recover'?String(Math.max(0,1-transition)):'1';
  for(const el of hormoneLayer.querySelectorAll('.demo-signal'))el.classList.remove('demo-signal');
  demoLayer.replaceChildren();const ns='http://www.w3.org/2000/svg';
- const paths=[...(step.paths||[])];if(step.optional){
-  if(demoLink('血管','脂肪組織'))paths.push(['血管','脂肪組織']);
-  if(demoLink('血管','細胞粒線體'))paths.push(['血管','細胞粒線體']);
- }
+ const paths=[...(step.paths||[])];
  if(focusing)return; // 先閃爍及小幅度搖晃，然後才播放轉移。
  for(const [from,to] of paths){
   const link=demoLink(from,to);if(!link)continue;const g=demoLinkGeometry(link);if(!g)continue;
   const hormone=step.hormones||[];
   if(hormone.length){
    hormoneLayer.querySelector(`[data-link="${link.id}"][data-role="primary"]`)?.classList.add('demo-signal');
-   if(hormone.includes('腎上腺素')){
-    const secondary=hormoneLayer.querySelector(`[data-link="${link.id}"][data-role="bonus"]`);
-    if(link.adrenaline==='腎上腺素')secondary?.classList.add('demo-signal');
-    else if(secondary){ // 選做卡尚未放置時，以純演示疊圖呈現，不寫入學生答案。
-     const px=parseFloat(secondary.style.left),py=parseFloat(secondary.style.top);
-     const rect=document.createElementNS(ns,'rect');for(const[k,v]of Object.entries({x:px-37,y:py-29,width:74,height:24,rx:12,fill:'#ec812c',stroke:'#fff','stroke-width':1.3}))rect.setAttribute(k,v);demoLayer.append(rect);
-     const textEl=document.createElementNS(ns,'text');for(const[k,v]of Object.entries({x:px,y:py-12,'text-anchor':'middle','font-size':11,'font-weight':800,fill:'#fff'}))textEl.setAttribute(k,v);textEl.textContent='腎上腺素';demoLayer.append(textEl);
-    }
-   }
+
   }
-  const color=hormone.includes('升糖素')?'#ff4761':hormone.includes('胰島素')?'#a66afc':'#18b9a7';
+  const color=hormone.includes('升糖素')?'#ee8aa2':hormone.includes('胰島素')?'#9c5678':'#18b9a7';
   const line=document.createElementNS(ns,'line');for(const[k,v]of Object.entries({x1:g.x1,y1:g.y1,x2:g.x2,y2:g.y2,stroke:color,'stroke-width':9,'stroke-linecap':'round',opacity:.34}))line.setAttribute(k,v);demoLayer.append(line);
   for(let i=0;i<7;i++){
    const f=(transition*1.16+i/7)%1,c=document.createElementNS(ns,'circle');
@@ -457,7 +523,7 @@ function renderDemoStep(step,t){
 function demoTick(ts){
  if(!demoPlaying||!demoMode)return;
  if(demoLastFrame!==null)demoElapsed+=Math.min(90,ts-demoLastFrame);demoLastFrame=ts;
- const all=DEMO_STEPS[demoMode].reduce((sum,a)=>sum+a.ms,0),current=currentStep(demoMode,demoElapsed);
+ const all=demoSequence.reduce((sum,a)=>sum+a.ms,0),current=currentStep(demoMode,demoElapsed);
  demoProgress.style.width=Math.min(100,100*demoElapsed/all)+'%';
  if(!current){demoPlaying=false;demoPaused=false;demoRaf=0;demoLastFrame=null;demoProgress.style.width='100%';demoCaption.textContent='演示完成，可重播或結束';demoPause.disabled=true;demoPause.textContent='暫停';resetDemoVisuals();return;}
  if(current.i!==demoStepIndex){demoStepIndex=current.i;demoCaption.textContent=current.step.title;}

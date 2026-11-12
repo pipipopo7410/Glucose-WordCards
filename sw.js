@@ -1,5 +1,5 @@
 /* 只快取同一 GitHub Pages 單元目錄；整合入口必須另行收納單元檔案。 */
-const VERSION='3.1.0-2026-11-12';
+const VERSION='3.1.1-2026-11-12';
 const PREFIX='bio-sugar-'+new URL(self.registration.scope).pathname.replace(/[^a-zA-Z0-9]/g,'_')+'-';
 const CACHE_NAME=PREFIX+VERSION;
 const SHELL=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./unit.json',

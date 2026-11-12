@@ -4,14 +4,14 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#176b79"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="血糖複習">
-<meta name="description" content="國中生物血糖調節互動概念圖：胰島素、升糖素及選做腎上腺素，飯後／運動情境演示，支援獨立安裝與離線使用。">
+<meta name="description" content="國中生物血糖調節互動概念圖：胰島素、升糖素及運動情境腎上腺素，飯後／運動情境演示，支援獨立安裝與離線使用。">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png"><link rel="stylesheet" href="./styles.css">
-<title>血糖調節｜概念圖練習 3.1</title><script src="./app.js" defer></script>
+<title>血糖調節｜概念圖練習 3.1.1</title><script src="./app.js" defer></script>
 </head>
 <body>
 <header class="topbar">
- <div class="branding"><img src="./icons/icon-192.png" alt="" class="brand-icon" width="42" height="42"><div><h1>血糖調節：概念圖練習</h1><span class="subline">生物互動教學系統 <strong>3.1 測試版</strong></span></div></div>
+ <div class="branding"><img src="./icons/icon-192.png" alt="" class="brand-icon" width="42" height="42"><div><h1>血糖調節：概念圖練習</h1><span class="subline">生物互動教學系統 <strong>3.1.1 測試版</strong></span></div></div>
  <div class="toolbar">
   <button id="check-btn" class="btn primary" type="button">檢查架構</button>
   <button id="snap-btn" class="btn" type="button" aria-pressed="false">貼齊格線：關</button>
@@ -32,6 +32,7 @@
  <section class="canvas-area" aria-label="概念圖工作區">
   <div id="canvas" tabindex="0" aria-label="概念圖畫布，可自由排列器官字卡">
    <svg id="svg-layer" aria-hidden="true"></svg><svg id="demo-layer" aria-hidden="true"></svg>
+   <div id="demo-alert-glow" aria-hidden="true"></div><div id="demo-adrenaline" hidden aria-hidden="true">腎上腺素</div>
    <div id="hormone-slots" aria-label="連線中的激素標籤"></div>
    <p id="canvas-empty" class="canvas-empty">將器官拖到畫布，再點兩張器官建立箭頭</p>
    <div class="canvas-counter" id="canvas-counter">核心路徑 0／5 · 延伸 0／2</div>
